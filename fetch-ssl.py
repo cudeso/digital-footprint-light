@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import certstream
 import logging
 import sys
