@@ -2,7 +2,8 @@
 
 NOW=`/bin/date '+%Y-%m-%d'`
 CERTSTREAM_LOG="suspicious_domains.log"
-CERTSTREAM_PY="certstream-phish-catcher.py"
+CERTSTREAM_LOG_JSON="suspicious_domains.json"
+CERTSTREAM_PY="fetch-ssl.py"
 OUTPUT_PATH=/home/user/digital-footprint-light/
 MAIL_FROM="user@localhost"
 RCPT_TO="user@localhost"
@@ -46,8 +47,11 @@ fi
 
 # Copy and archive logs
 /bin/cp $OUTPUT_PATH/$CERTSTREAM_LOG $OUTPUT_PATH/$CERTSTREAM_LOG-$NOW
+/bin/cp $OUTPUT_PATH/$CERTSTREAM_LOG_JSON $OUTPUT_PATH/$CERTSTREAM_LOG_JSON-$NOW
 /bin/gzip --force $OUTPUT_PATH/$CERTSTREAM_LOG-$NOW
+/bin/gzip --force $OUTPUT_PATH/$CERTSTREAM_LOG_JSON-$NOW
 /bin/rm $OUTPUT_PATH/$CERTSTREAM_LOG
+/bin/rm $OUTPUT_PATH/$CERTSTREAM_LOG_JSON
 
 # Start catcher
 /usr/bin/screen -dmS catcher $OUTPUT_PATH/$CERTSTREAM_PY
