@@ -54,8 +54,11 @@ def callback(message, context):
                         update_type = message['data']['update_type']
                         not_before = datetime.utcfromtimestamp(int(message['data']['leaf_cert']['not_after'])).strftime('%Y-%m-%d %H:%M:%S')
                         not_after = datetime.utcfromtimestamp(int(message['data']['leaf_cert']['not_after'])).strftime('%Y-%m-%d %H:%M:%S')
+                        serial_number = message['data']['leaf_cert']['subject']['serial_number']
                         issuer = message['data']['leaf_cert']['subject']['aggregated']
                         fingerprint = message['data']['leaf_cert']['fingerprint']
+                        ca = message['data']['chain']['leaf_cert']['issuer']['aggregated']
+
                         suspicious = {  "timestamp": now,
                                         "match": alert,
                                         "current_domain": current_domain,
@@ -71,7 +74,7 @@ def callback(message, context):
                             f_json.write("\n")
                         
                         with open(log_suspicious, 'a') as f_log_suspicious:
-                            f_log_suspicious.write("{}\n".format(message))
+                            f_log_suspicious.write("{},{},{},{},{},{},{},{}\n".format(now,alert,current_domain,not_before,not_after,serial_number,fingerprint,ca))
 
         sys.stdout.flush()
 
