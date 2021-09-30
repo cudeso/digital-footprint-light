@@ -55,10 +55,10 @@ def callback(message, context):
                         update_type = message['data']['update_type']
                         not_before = datetime.utcfromtimestamp(int(message['data']['leaf_cert']['not_after'])).strftime('%Y-%m-%d %H:%M:%S')
                         not_after = datetime.utcfromtimestamp(int(message['data']['leaf_cert']['not_after'])).strftime('%Y-%m-%d %H:%M:%S')
-                        serial_number = message['data']['leaf_cert']['subject']['serial_number']
+                        serial_number = message['data']['leaf_cert']['serial_number']
                         issuer = message['data']['leaf_cert']['subject']['aggregated']
                         fingerprint = message['data']['leaf_cert']['fingerprint']
-                        ca = message['data']['chain']['leaf_cert']['issuer']['aggregated']
+                        ca = message['data']['leaf_cert']['issuer']['aggregated']
 
                         suspicious = {  "timestamp": now,
                                         "match": alert,
