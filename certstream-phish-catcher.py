@@ -61,6 +61,7 @@ def callback(message, context):
                     message["data"]["digital_footprint_match"] = alert
                     with open(log_suspicious, 'a') as f:
                         json.dump(message["data"], f)
+                        f.write("\n")
 
 if __name__ == '__main__':
     with open(basepath + 'keywords_alert.yaml', 'r') as f:
