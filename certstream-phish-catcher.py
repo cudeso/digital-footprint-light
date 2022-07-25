@@ -16,23 +16,20 @@
 #     but ignore the alert if the domain contains something from keywords_ignore.yaml
 #
 
+#
+# New version: log as JSON; this file is picked up by Elastic Agent
+#
+
 import re
 import certstream
-import entropy
-import tqdm
 import yaml
-from datetime import datetime
-import time
-from termcolor import colored, cprint
-import smtplib
-from email.mime.text import MIMEText
+import json
 from confusables import unconfuse
 import os
 
 certstream_url = 'wss://certstream.calidog.io'
 basepath = os.path.dirname(os.path.realpath(__file__)) + '/'
 log_suspicious = basepath + 'suspicious_domains.log'
-pbar = tqdm.tqdm(desc='certificate_update', unit='cert')
 
 # Main
 def callback(message, context):
@@ -41,11 +38,13 @@ def callback(message, context):
         return
 
     if message['message_type'] == "certificate_update":
+        if message['data']['update_type'] == "PrecertLogEntry":
+            return
+
         all_domains = message['data']['leaf_cert']['all_domains']
 
         force_break = False
         for domain in all_domains:
-            pbar.update(1)
 
             current_domain = domain.lower()
             uc_current_domain = unconfuse(current_domain)
@@ -59,21 +58,10 @@ def callback(message, context):
 
             for alert in keywords_alert:
                 if alert in current_domain or alert in uc_current_domain:
-
-                    not_before = datetime.utcfromtimestamp(int(message['data']['leaf_cert']['not_after'])).strftime('%Y-%m-%d %H:%M:%S')
-                    not_after = datetime.utcfromtimestamp(int(message['data']['leaf_cert']['not_after'])).strftime('%Y-%m-%d %H:%M:%S')
-                    serial_number = message['data']['leaf_cert']['serial_number']
-                    fingerprint = message['data']['leaf_cert']['fingerprint']
-                    ca = message['data']['chain'][0]['subject']['aggregated']
-
-                    tqdm.tqdm.write("[+] Match found {}".format(colored(current_domain, 'red', attrs=['underline', 'bold'])))
-                    tqdm.tqdm.write("      Matched on {}".format(alert))
-                    tqdm.tqdm.write("      [Details] Not before {}, Not after {}, Serial {}".format(not_before,not_after,serial_number))
-                    tqdm.tqdm.write("      [Details] Fingerprint {}, CA {}".format(fingerprint,ca))
-
+                    message["data"]["digital_footprint_match"] = alert
                     with open(log_suspicious, 'a') as f:
-                        now = time.strftime("%Y-%m-%d %H:%M:%S")
-                        f.write("{},{},{},{},{},{},{},{}\n".format(now,alert,current_domain,not_before,not_after,serial_number,fingerprint,ca))
+                        json.dump(message["data"], f)
+
 if __name__ == '__main__':
     with open(basepath + 'keywords_alert.yaml', 'r') as f:
         y = yaml.safe_load(f)
